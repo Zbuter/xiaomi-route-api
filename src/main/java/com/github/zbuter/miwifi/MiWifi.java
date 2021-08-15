@@ -31,12 +31,12 @@ public class MiWifi implements MiWifiService {
         this(new MiWifiApiDefaultImpl(url, username, passwd));
     }
 
-    public MiWifi(String username, String passwd) {
-        this("http://192.168.31.1", username, passwd);
+    public MiWifi(String url, String passwd) {
+        this(url, "admin", passwd);
     }
 
     public MiWifi(String passwd) {
-        this("admin", passwd);
+        this("http://192.168.31.1", passwd);
     }
 
     public MiWifi(MiWifiApi api) {
