@@ -1,11 +1,11 @@
-package com.github.zbuter.miwifi.VO;
+package com.github.zbuter.miwifi.DO;
 
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-public class MiWifiDeviceVO {
+public class MiWifiDeviceDO {
     String name;
     String mac;
     int online;
@@ -46,8 +46,8 @@ public class MiWifiDeviceVO {
     }
     @Override
     public boolean equals(Object o) {
-        if (o instanceof MiWifiDeviceVO) {
-            MiWifiDeviceVO device = (MiWifiDeviceVO) o;
+        if (o instanceof MiWifiDeviceDO) {
+            MiWifiDeviceDO device = (MiWifiDeviceDO) o;
             return this.mac.equals(device.mac);
         }
         return super.equals(o);

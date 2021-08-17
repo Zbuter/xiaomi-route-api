@@ -1,11 +1,11 @@
-package com.github.zbuter.miwifi.VO;
+package com.github.zbuter.miwifi.DO;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class MiWifiRouterNameVO extends MiWifiBaseVO {
+public class MiWifiRouterNameDO extends MiWifiBaseDO {
     String locale;
     String name;
 }

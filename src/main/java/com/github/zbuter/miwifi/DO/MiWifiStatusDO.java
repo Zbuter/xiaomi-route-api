@@ -1,4 +1,4 @@
-package com.github.zbuter.miwifi.VO;
+package com.github.zbuter.miwifi.DO;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -14,7 +14,7 @@ import java.util.List;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class MiWifiStatusVO extends MiWifiBaseVO {
+public class MiWifiStatusDO extends MiWifiBaseDO {
     DeviceCount count;
     CPU cpu;
     int temperature;

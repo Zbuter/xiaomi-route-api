@@ -1,6 +1,5 @@
-package com.github.zbuter.miwifi;
+package com.github.zbuter.miwifi.impl;
 
-import cn.hutool.core.net.Ipv4Util;
 import cn.hutool.core.net.url.UrlBuilder;
 import cn.hutool.core.net.url.UrlPath;
 import cn.hutool.http.HttpRequest;
@@ -8,10 +7,9 @@ import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.http.Method;
 import cn.hutool.json.JSONUtil;
-import com.github.zbuter.miwifi.VO.*;
-import com.github.zbuter.miwifi.exceptions.MiWifiException;
+import com.github.zbuter.miwifi.DO.*;
+import com.github.zbuter.miwifi.MiWifiApi;
 import com.github.zbuter.miwifi.exceptions.MiWifiStatusException;
-import sun.net.util.IPAddressUtil;
 
 import java.nio.charset.Charset;
 import java.time.ZonedDateTime;
@@ -26,7 +24,7 @@ import java.util.Map;
  * @author: Jiashun Zhang
  * @since: 2021-08-14
  */
-class MiWifiApiDefaultImpl implements MiWifiApi {
+public class MiWifiApiDefaultImpl implements MiWifiApi {
     private String adminUrl;
     private String token;
     private String username;
@@ -40,37 +38,37 @@ class MiWifiApiDefaultImpl implements MiWifiApi {
     }
 
     @Override
-    public MiWifiLoginVO login() {
+    public MiWifiLoginDO login() {
         String reqUrl = UrlBuilder.ofHttp(adminUrl)
                 .setPath(UrlPath.of("/cgi-bin/luci/api/xqsystem/login", Charset.defaultCharset()))
                 .addQuery("username", username)
                 .addQuery("password", passwd).build();
         String s = this.getResponse(reqUrl);
-        MiWifiLoginVO miWifiLoginModel = JSONUtil.toBean(s, MiWifiLoginVO.class);
+        MiWifiLoginDO miWifiLoginModel = JSONUtil.toBean(s, MiWifiLoginDO.class);
         token = miWifiLoginModel.getToken();
         return miWifiLoginModel;
     }
 
     @Override
-    public MiWifiDevicelistVO onlineDevice() {
+    public MiWifiDevicelistDO onlineDevice() {
         String url = UrlBuilder.ofHttp(adminUrl)
                 .setPath(UrlPath.of("/cgi-bin/luci/;stok=" + token + "/api/misystem/devicelist", Charset.defaultCharset()))
                 .build();
         String s = this.getResponse(url);
-        return JSONUtil.toBean(s, MiWifiDevicelistVO.class);
+        return JSONUtil.toBean(s, MiWifiDevicelistDO.class);
     }
 
     @Override
-    public MiWifiRouterNameVO routerName() {
+    public MiWifiRouterNameDO routerName() {
         String url = UrlBuilder.ofHttp(adminUrl)
                 .setPath(UrlPath.of("/cgi-bin/luci/;stok=" + token + "/api/misystem/router_name", Charset.defaultCharset()))
                 .build();
         String s = this.getResponse(url);
-        return JSONUtil.toBean(s, MiWifiRouterNameVO.class);
+        return JSONUtil.toBean(s, MiWifiRouterNameDO.class);
     }
 
     @Override
-    public MiWifiBaseVO setRouterName(String name, String locale) {
+    public MiWifiBaseDO setRouterName(String name, String locale) {
         Map<String, Object> map = new HashMap<>();
         map.put("name", name);
         map.put("locale", locale);
@@ -78,20 +76,20 @@ class MiWifiApiDefaultImpl implements MiWifiApi {
                 .setPath(UrlPath.of("/cgi-bin/luci/;stok=" + token + "/api/misystem/set_router_name", Charset.defaultCharset()))
                 .build();
         String s = this.getResponse(url);
-        return JSONUtil.toBean(s, MiWifiBaseVO.class);
+        return JSONUtil.toBean(s, MiWifiBaseDO.class);
     }
 
     @Override
-    public MiWifiTimeVO sysTime() {
+    public MiWifiTimeDO sysTime() {
         String url = UrlBuilder.ofHttp(adminUrl)
                 .setPath(UrlPath.of("/cgi-bin/luci/;stok=" + token + "/api/misystem/sys_time", Charset.defaultCharset()))
                 .build();
         String s = this.getResponse(url);
-        return JSONUtil.toBean(s, MiWifiTimeVO.class);
+        return JSONUtil.toBean(s, MiWifiTimeDO.class);
     }
 
     @Override
-    public MiWifiBaseVO setSysTime(ZonedDateTime time) {
+    public MiWifiBaseDO setSysTime(ZonedDateTime time) {
         String url = UrlBuilder.ofHttp(adminUrl)
                 .setPath(UrlPath.of("/cgi-bin/luci/;stok=" + token + "/api/misystem/set_sys_time", Charset.defaultCharset()))
                 .build();
@@ -102,11 +100,11 @@ class MiWifiApiDefaultImpl implements MiWifiApi {
 //        data.put("index","0");
         data.put("time", time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         String s = this.getResponse(url,data);
-        return JSONUtil.toBean(s, MiWifiBaseVO.class);
+        return JSONUtil.toBean(s, MiWifiBaseDO.class);
     }
 
     @Override
-    public MiWifiBaseVO setMacFilter(String mac, boolean wan){
+    public MiWifiBaseDO setMacFilter(String mac, boolean wan){
 
         String url = UrlBuilder.ofHttp(adminUrl)
                 .setPath(UrlPath.of("/cgi-bin/luci/;stok=" + token + "/api/xqsystem/set_mac_filter", Charset.defaultCharset()))
@@ -115,12 +113,12 @@ class MiWifiApiDefaultImpl implements MiWifiApi {
 
                 .build();
         String s = this.getResponse(url);
-        return JSONUtil.toBean(s, MiWifiBaseVO.class);
+        return JSONUtil.toBean(s, MiWifiBaseDO.class);
     }
 
 
 
-    public MiWifiBaseVO setWifiFilter(boolean enable,boolean blackMode){
+    public MiWifiBaseDO setWifiFilter(boolean enable, boolean blackMode){
 
         String url = UrlBuilder.ofHttp(adminUrl)
                 .setPath(UrlPath.of("/cgi-bin/luci/;stok=" + token + "/api/xqnetwork/set_wifi_macfilter", Charset.defaultCharset()))
@@ -128,21 +126,21 @@ class MiWifiApiDefaultImpl implements MiWifiApi {
                 .addQuery("enable",enable?"1":"0")
                 .build();
         String s = this.getResponse(url);
-        return JSONUtil.toBean(s, MiWifiBaseVO.class);
+        return JSONUtil.toBean(s, MiWifiBaseDO.class);
     }
 
 
     @Override
-    public MiWifiStatusVO status() {
+    public MiWifiStatusDO status() {
         String url = UrlBuilder.ofHttp(adminUrl)
                 .setPath(UrlPath.of("/cgi-bin/luci/;stok=" + token + "/api/misystem/status", Charset.defaultCharset()))
                 .build();
         String s = this.getResponse(url);
-        return JSONUtil.toBean(s, MiWifiStatusVO.class);
+        return JSONUtil.toBean(s, MiWifiStatusDO.class);
     }
 
     @Override
-    public MiWifiBaseVO editDevice(String mac, boolean isblack, boolean active) {
+    public MiWifiBaseDO editDevice(String mac, boolean isblack, boolean active) {
 
         String model = isblack ? "0" : "1";
         String option = active ? "0" : "1";
@@ -154,11 +152,11 @@ class MiWifiApiDefaultImpl implements MiWifiApi {
                 .addQuery("option", option)
                 .build();
         String s = this.getResponse(url);
-        return JSONUtil.toBean(s, MiWifiBaseVO.class);
+        return JSONUtil.toBean(s, MiWifiBaseDO.class);
     }
 
     @Override
-    public MiWifiMacFilterInfoVO macFilterInfo(boolean isBlackList) {
+    public MiWifiMacFilterInfoDO macFilterInfo(boolean isBlackList) {
         String model = isBlackList ? "0" : "1";
 
         String url = UrlBuilder.ofHttp(adminUrl)
@@ -166,7 +164,7 @@ class MiWifiApiDefaultImpl implements MiWifiApi {
                 .addQuery("model", model)
                 .build();
         String s = this.getResponse(url);
-        return JSONUtil.toBean(s, MiWifiMacFilterInfoVO.class);
+        return JSONUtil.toBean(s, MiWifiMacFilterInfoDO.class);
 
     }
 

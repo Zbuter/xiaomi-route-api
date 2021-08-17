@@ -1,4 +1,4 @@
-package com.github.zbuter.miwifi.VO;
+package com.github.zbuter.miwifi.DO;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -7,7 +7,7 @@ import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class MiWifiDevicelistVO extends MiWifiBaseVO {
+public class MiWifiDevicelistDO extends MiWifiBaseDO {
     String mac;
-    List<MiWifiDeviceVO> list;
+    List<MiWifiDeviceDO> list;
 }

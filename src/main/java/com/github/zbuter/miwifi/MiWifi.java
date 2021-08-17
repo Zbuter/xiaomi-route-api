@@ -3,7 +3,8 @@ package com.github.zbuter.miwifi;
 import cn.hutool.aop.ProxyUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
-import com.github.zbuter.miwifi.VO.*;
+import com.github.zbuter.miwifi.DO.*;
+import com.github.zbuter.miwifi.impl.MiWifiApiDefaultImpl;
 import com.github.zbuter.miwifi.model.MiWifiDevice;
 import com.github.zbuter.miwifi.model.MiWifiMacFilter;
 import com.github.zbuter.miwifi.model.MiWifiRouterName;
@@ -51,14 +52,14 @@ public class MiWifi implements MiWifiService {
      */
     @Override
     public List<MiWifiDevice> onlineDevice() {
-        MiWifiDevicelistVO miWifiDevicelistVO = api.onlineDevice();
+        MiWifiDevicelistDO miWifiDevicelistVO = api.onlineDevice();
 
         ZonedDateTime sysTime = this.sysTime();
 
         List<MiWifiDevice> devices = new ArrayList<>();
-        for (MiWifiDeviceVO deviceVO : miWifiDevicelistVO.getList()) {
+        for (MiWifiDeviceDO deviceVO : miWifiDevicelistVO.getList()) {
             MiWifiDevice device = new MiWifiDevice();
-            MiWifiDeviceVO.IP ip = deviceVO.getIp().get(0);
+            MiWifiDeviceDO.IP ip = deviceVO.getIp().get(0);
             device.setIp(ip.getIp());
             device.setMac(deviceVO.getMac());
             device.setRemarkName(deviceVO.getName());
@@ -85,7 +86,7 @@ public class MiWifi implements MiWifiService {
      */
     @Override
     public MiWifiRouterName routerName() {
-        MiWifiRouterNameVO miWifiRouterNameVO = api.routerName();
+        MiWifiRouterNameDO miWifiRouterNameVO = api.routerName();
         MiWifiRouterName rn = new MiWifiRouterName();
         rn.setLocale(miWifiRouterNameVO.getLocale());
         rn.setName(miWifiRouterNameVO.getName());
@@ -102,8 +103,8 @@ public class MiWifi implements MiWifiService {
     @Override
     public boolean setRouterName(String name, String locale) {
         // {"locale":"Home","name":"Xiaomi_A3D7","code":0}
-        MiWifiBaseVO miWifiBaseVO = api.setRouterName(name, locale);
-        return miWifiBaseVO.getCode() == 0;
+        MiWifiBaseDO miWifiBaseDO = api.setRouterName(name, locale);
+        return miWifiBaseDO.getCode() == 0;
     }
 
     /**
@@ -112,18 +113,27 @@ public class MiWifi implements MiWifiService {
      * @return 系统时间
      */
     public ZonedDateTime sysTime() {
-        MiWifiTimeVO timeVO = api.sysTime();
-        MiWifiTimeVO.Time time = timeVO.getTime();
+        MiWifiTimeDO timeVO = api.sysTime();
+        MiWifiTimeDO.Time time = timeVO.getTime();
         return ZonedDateTime.of(time.getYear(), time.getMonth(), time.getMonth(), time.getHour(), time.getMin(), time.getSec(), 0, ZoneId.of(time.getTimezone().replace("CST-", "UTC+").replace("CST+", "UTC-")));
     }
 
+    /**
+     * 设置路由器系统时间
+     * @param time 时间
+     * @return 是否设置成功
+     */
     public boolean setSysTime(ZonedDateTime time) {
-        MiWifiBaseVO miWifiBaseVO = api.setSysTime(time);
-        return miWifiBaseVO.getCode() == 0;
+        MiWifiBaseDO miWifiBaseDO = api.setSysTime(time);
+        return miWifiBaseDO.getCode() == 0;
     }
 
+    /**
+     * 路由器系统状态
+     * @return
+     */
     public MiWifiRouterStatus status() {
-        MiWifiStatusVO statusVO = api.status();
+        MiWifiStatusDO statusVO = api.status();
         MiWifiRouterStatus status = new MiWifiRouterStatus();
 
         status.setTemperature(statusVO.getTemperature());
@@ -159,7 +169,7 @@ public class MiWifi implements MiWifiService {
         status.setMaxUploadSpeed(Integer.parseInt(statusVO.getWan().getMaxuploadspeed()));
 
         List<MiWifiRouterStatus.ConnDevice> devices = new ArrayList<>();
-        for (MiWifiStatusVO.Device deviceVO : statusVO.getDev()) {
+        for (MiWifiStatusDO.Device deviceVO : statusVO.getDev()) {
             MiWifiRouterStatus.ConnDevice device = new MiWifiRouterStatus.ConnDevice();
             device.setName(deviceVO.getDevname());
             device.setDownloadSize(Long.parseLong(deviceVO.getDownload()));
@@ -176,51 +186,96 @@ public class MiWifi implements MiWifiService {
         return status;
     }
 
+    /**
+     * 允许访问 互联网。
+     * @param mac mac地址
+     * @return 是否成功
+     */
     public boolean allowWan(String mac){
-        MiWifiBaseVO vo = api.setMacFilter(mac, true);
+        MiWifiBaseDO vo = api.setMacFilter(mac, true);
         return vo.getCode()==0;
     }
+
+    /**
+     * 禁止访问互联网。 可以连接到wifi， 也可以访问局域网内容。
+     * @param mac mac地址
+     * @return 是否成功
+     */
     public boolean forbidWan(String mac){
-        MiWifiBaseVO vo = api.setMacFilter(mac, false);
+        MiWifiBaseDO vo = api.setMacFilter(mac, false);
         return vo.getCode()==0;
     }
 
 
+    /**
+     * 允许连接wifi
+     * @param mac mac地址
+     * @return 是否成功
+     */
     public boolean allowConnWifi(String mac){
-        MiWifiBaseVO vo = api.editDevice(mac, true, false);
+        MiWifiBaseDO vo = api.editDevice(mac, true, false);
         return vo.getCode()==0;
     }
+
+    /**
+     * 禁止连接wifi
+     * @param mac mac 地址
+     * @return 是否成功
+     */
     public boolean forbidConnWifi(String mac){
-        MiWifiBaseVO vo = api.editDevice(mac, true, true);
+        MiWifiBaseDO vo = api.editDevice(mac, true, true);
         return vo.getCode()==0;
     }
+
+    /**
+     * wifi黑名单列表。
+     * @return 列表黑名单
+     */
     public List<MiWifiMacFilter> blackList(){
-        MiWifiMacFilterInfoVO info = api.macFilterInfo(true);
+        MiWifiMacFilterInfoDO info = api.macFilterInfo(true);
         return getMiWifiMacFilters(info);
     }
+    /**
+     * wifi白名单列表。
+     * @return 列表白名单
+     */
     public List<MiWifiMacFilter> whiteList(){
-        MiWifiMacFilterInfoVO info = api.macFilterInfo(false);
+        MiWifiMacFilterInfoDO info = api.macFilterInfo(false);
         return getMiWifiMacFilters(info);
     }
 
+    /**
+     * 当前wifi控制模式是否为黑名单模式。
+     * @return 是否黑名单模式。
+     */
     public boolean isBlackControlMode(){
-        MiWifiMacFilterInfoVO info = api.macFilterInfo(false);
+        MiWifiMacFilterInfoDO info = api.macFilterInfo(false);
         return info.getModel()==0;
     }
 
+    /**
+     * 设置wifi控制模式。
+     * @param blackmode 是否黑名单模式。
+     * @return 是否成功。
+     */
     public boolean enableWifiControl(boolean blackmode){
-        MiWifiBaseVO vo = api.setWifiFilter(true, blackmode);
-        return vo.getCode()==0;
-    }
-    public boolean disableWifiControl(){
-        MiWifiBaseVO vo = api.setWifiFilter(false, false);
+        MiWifiBaseDO vo = api.setWifiFilter(true, blackmode);
         return vo.getCode()==0;
     }
 
-    private List<MiWifiMacFilter> getMiWifiMacFilters(MiWifiMacFilterInfoVO info) {
-        List<MiWifiMacFilterInfoVO.MacFilter> macfilter = info.getMacfilter();
+    /**
+     * 禁用wifi控制模式。
+     * @return 是否成功。
+     */
+    public boolean disableWifiControl(){
+        MiWifiBaseDO vo = api.setWifiFilter(false, false);
+        return vo.getCode()==0;
+    }
+
+    private List<MiWifiMacFilter> getMiWifiMacFilters(MiWifiMacFilterInfoDO info) {
+        List<MiWifiMacFilterInfoDO.MacFilter> macfilter = info.getMacfilter();
         List<MiWifiMacFilter> list = new ArrayList<>();
-        for (MiWifiMacFilterInfoVO.MacFilter filter : macfilter) {
+        for (MiWifiMacFilterInfoDO.MacFilter filter : macfilter) {
             MiWifiMacFilter i = new MiWifiMacFilter();
             i.setMac(filter.getMac());
             i.setName(filter.getName());
@@ -229,10 +284,4 @@ public class MiWifi implements MiWifiService {
         return list;
     }
 
-    public static void main(String[] args) {
-
-        MiWifi miwifi = new MiWifi("123456789.fa");
-        MiWifiRouterStatus status = miwifi.status();
-        System.out.println(status);
-    }
 }

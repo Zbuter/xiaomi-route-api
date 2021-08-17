@@ -1,4 +1,4 @@
-package com.github.zbuter.miwifi.VO;
+package com.github.zbuter.miwifi.DO;
 
 import lombok.Data;
 
@@ -10,7 +10,7 @@ import lombok.Data;
  * @since: 2021-08-14
  */
 @Data
-public class MiWifiTimeVO extends MiWifiBaseVO {
+public class MiWifiTimeDO extends MiWifiBaseDO {
     Time time;
     @Data
     public static class Time{
